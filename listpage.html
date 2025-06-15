@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>List Page</title>
+  <link rel="stylesheet" href="liststyle.css">
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <h3>List Page</h3>
+    </div>
+
+    <div class="add-btn-container">
+      <a href="form.html" onclick="setMode('add')">
+        <button class="add-btn">Add New</button>
+      </a>
+    </div>
+
+    <div class="straight-line"></div>
+    <div class="search-section">
+      <label><b>Search List:</b></label>
+      <input type="text" id="searchInput" placeholder="Type to search...">
+      <img src="search-icon.png" alt="Search" class="search-icon">
+    </div>
+
+    <p class="subheading">Search List Table:</p>
+
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Department</th>
+          <th>Date of Joining</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    function setMode(mode, index = null) {
+      localStorage.setItem('formMode', mode);
+      if (index !== null) {
+        const data = JSON.parse(localStorage.getItem('formList')) || [];
+        localStorage.setItem('formData', JSON.stringify(data[index]));
+        localStorage.setItem('formIndex', index);
+      }
+    }
+
+    function loadTable(filter = "") {
+      const data = JSON.parse(localStorage.getItem('formList')) || [];
+      const tableBody = document.getElementById("tableBody");
+      tableBody.innerHTML = "";
+
+      const filteredData = data.filter(item =>
+        item.name.toLowerCase().includes(filter.toLowerCase()) ||
+        item.department.toLowerCase().includes(filter.toLowerCase()) ||
+        item.doj.includes(filter)
+      );
+
+      filteredData.forEach((item, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.department}</td>
+          <td>${item.doj}</td>
+          <td>
+            <div class="action-icons">
+              <img src="view.png" alt="View" onclick="viewItem(${index})">
+              <img src="edit.png" alt="Edit" onclick="editItem(${index})">
+              <img src="delete.png" alt="Delete" onclick="deleteItem(${index})">
+            </div>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function viewItem(index) {
+      setMode("view", index);
+      window.location.href = "form.html";
+    }
+
+    function editItem(index) {
+      setMode("edit", index);
+      window.location.href = "form.html";
+    }
+
+    function deleteItem(index) {
+      const data = JSON.parse(localStorage.getItem('formList')) || [];
+      data.splice(index, 1);
+      localStorage.setItem('formList', JSON.stringify(data));
+      loadTable(document.getElementById("searchInput").value);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const searchValue = this.value.trim();
+      loadTable(searchValue);
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTable();
+    });
+  </script>
+
+</body>
+</html>

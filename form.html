@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add-Edit Page</title>
+  <link rel="stylesheet" href="form.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">Add-Edit Page</div>
+    <form id="form">
+      <table>
+        <tr>
+          <td><label for="name">Name:</label></td>
+          <td><input type="text" id="name" required></td>
+          <td><label for="address">Address:</label></td>
+          <td><textarea id="address" rows="5" cols="25" required></textarea></td>
+        </tr>
+        <tr>
+          <td><label for="department">Department:</label></td>
+          <td>
+            <select id="department" required>
+              <option value="">Select Department</option>
+              <option>IT</option>
+              <option>Sales</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td><label for="doj">Date of Joining:</label></td>
+          <td><input type="date" id="doj" required></td>
+          <td><label>Gender:</label></td>
+          <td>
+            <input type="radio" name="gender" id="male" value="Male"> Male
+            <input type="radio" name="gender" id="female" value="Female"> Female
+          </td>
+        </tr>
+        <tr>
+          <td><label>Hobbies:</label></td>
+          <td colspan="3">
+            <input type="checkbox" id="reading" value="Reading"> Reading
+            <input type="checkbox" id="swimming" value="Swimming"> Swimming
+            <input type="checkbox" id="playing" value="Playing"> Playing
+            <input type="checkbox" id="singing" value="Singing"> Singing
+          </td>
+        </tr>
+        <tr>
+          <td colspan="4" style="text-align: center;">
+            <button type="button" class="btn update">Update</button>
+            <button type="button" class="btn save">Save</button>
+            <button type="button" class="btn back">Back</button>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+
+  <script>
+    const mode = localStorage.getItem("formMode");
+    const form = document.getElementById("form");
+    const data = JSON.parse(localStorage.getItem("formData"));
+    const formIndex = localStorage.getItem("formIndex");
+
+    window.onload = function () {
+      if (data) {
+        document.getElementById("name").value = data.name;
+        document.getElementById("address").value = data.address;
+        document.getElementById("department").value = data.department;
+        document.getElementById("doj").value = data.doj;
+
+        if (data.gender === "Male") document.getElementById("male").checked = true;
+        if (data.gender === "Female") document.getElementById("female").checked = true;
+
+        (data.hobbies || []).forEach(hobby => {
+          const id = hobby.toLowerCase();
+          const checkbox = document.getElementById(id);
+          if (checkbox) checkbox.checked = true;
+        });
+
+        if (mode === "view") {
+          document.querySelectorAll("input, select, textarea").forEach(e => e.disabled = true);
+          document.querySelector(".update").style.display = "none";
+          document.querySelector(".save").style.display = "none";
+        } else if (mode === "edit") {
+          document.querySelector(".update").style.display = "inline-block";
+          document.querySelector(".save").style.display = "none";
+        } else {
+          document.querySelector(".update").style.display = "none";
+          document.querySelector(".save").style.display = "inline-block";
+        }
+      }
+    };
+
+    document.querySelector(".back").addEventListener("click", () => {
+      window.location.href = "listpage.html";
+    });
+
+    function validateForm() {
+      const name = document.getElementById("name").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const department = document.getElementById("department").value;
+      const doj = document.getElementById("doj").value;
+      const gender = document.querySelector("input[name='gender']:checked");
+      const hobbies = Array.from(document.querySelectorAll("input[type='checkbox']:checked"));
+
+      if (!name || !address || !department || !doj || !gender || hobbies.length === 0) {
+        alert("Please fill in all required fields.");
+        return null;
+      }
+
+      return {
+        name,
+        address,
+        department,
+        doj,
+        gender: gender.value,
+        hobbies: hobbies.map(h => h.value)
+      };
+    }
+
+    function saveData(isUpdate) {
+      const entry = validateForm();
+      if (!entry) return;
+
+      const list = JSON.parse(localStorage.getItem("formList")) || [];
+
+      if (isUpdate && formIndex !== null) {
+        list[formIndex] = entry;
+      } else {
+        list.push(entry);
+      }
+
+      localStorage.setItem("formList", JSON.stringify(list));
+      window.location.href = "listpage.html";
+    }
+
+    document.querySelector(".save").addEventListener("click", () => saveData(false));
+    document.querySelector(".update").addEventListener("click", () => saveData(true));
+  </script>
+</body>
+</html>
